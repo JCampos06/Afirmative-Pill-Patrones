@@ -1,0 +1,43 @@
+# ─── Dependencias ───────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ─── Builds ─────────────────────────────────────────────────────
+dist/
+build/
+*.tsbuildinfo
+.vite/
+
+# ─── Variables de entorno (NUNCA subir credenciales) ────────────
+.env
+.env.*
+!.env.example
+
+# ─── Vercel / Supabase CLI ──────────────────────────────────────
+.vercel/
+supabase/.temp/
+supabase/.branches/
+
+# ─── Logs ───────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ─── Tests / cobertura ──────────────────────────────────────────
+coverage/
+
+# ─── Notas personales del proceso ───────────────────────────────
+NOTAS_PROCESO.md
+
+# ─── Editores y sistema operativo ───────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,2 @@
+# Generado desde schema.graphql en cada build (npm run schema:embed)
+src/graphql/typeDefs.generated.ts

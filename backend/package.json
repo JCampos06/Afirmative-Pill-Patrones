@@ -1,0 +1,54 @@
+{
+  "name": "afirmative-pill-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Afirmative Pill · Backend GraphQL (Apollo Server) con CQRS sobre Supabase PostgreSQL",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "schema:embed": "node scripts/embed-schema.mjs",
+    "predev": "npm run schema:embed",
+    "dev": "tsx watch src/local-server.ts",
+    "prebuild": "npm run schema:embed",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/local-server.js",
+    "typecheck": "npm run schema:embed && tsc --noEmit",
+    "test": "npm run schema:embed && vitest run",
+    "smoke": "node scripts/smoke.mjs",
+    "db:setup": "tsx scripts/db.ts setup",
+    "db:reset": "tsx scripts/db.ts reset",
+    "db:bundle": "tsx scripts/db.ts bundle",
+    "projections:rebuild": "tsx scripts/db.ts rebuild-projections"
+  },
+  "dependencies": {
+    "@apollo/server": "^5.5.1",
+    "@as-integrations/express5": "^1.1.2",
+    "@graphql-tools/schema": "^10.1.1",
+    "@vercel/functions": "^3.9.9",
+    "cors": "^2.8.6",
+    "dataloader": "^2.2.3",
+    "dotenv": "^18.0.3",
+    "express": "^5.2.1",
+    "graphql": "^16.14.2",
+    "graphql-scalars": "^2.0.0",
+    "graphql-subscriptions": "^3.0.0",
+    "graphql-ws": "^6.2.2",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.0",
+    "ws": "^8.21.3",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^26.6.2",
+    "@types/pg": "^8.23.1",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  }
+}
