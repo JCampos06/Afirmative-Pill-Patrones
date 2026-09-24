@@ -173,7 +173,7 @@ TALLER3C2/
 │
 └── docs/
     ├── DEPLOY_SUPABASE.md         # paso a paso de la base de datos
-    ├── DEPLOY.md                  # paso a paso del despliegue (GitHub + Render + Vercel)
+    ├── DEPLOY_VERCEL.md           # paso a paso del despliegue
     └── GUION_VIDEO.md             # guion sugerido para la sustentación
 ```
 
@@ -370,15 +370,14 @@ npm run smoke     # E2E contra el backend en ejecución (26 verificaciones):
 ## 11. Despliegue
 
 - **Base de datos:** [docs/DEPLOY_SUPABASE.md](docs/DEPLOY_SUPABASE.md)
-- **Backend en Render y frontend en Vercel:** [docs/DEPLOY.md](docs/DEPLOY.md)
+- **Frontend y backend en Vercel:** [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)
 - **Guion del video de sustentación:** [docs/GUION_VIDEO.md](docs/GUION_VIDEO.md)
 
 ---
 
 ## 12. Decisiones y limitaciones conocidas
 
-- **Backend en Render (servidor persistente).** Se eligió Render porque mantiene conexiones WebSocket, así que las subscriptions funcionan en producción. En el plan gratuito el servicio se duerme tras 15 minutos sin tráfico y la primera petición tarda unos 50 segundos.
-- **Alternativa serverless:** el backend también puede correr en Vercel (`vercel-handler.ts`, el proyector con `waitUntil`), pero Vercel no mantiene WebSocket y el frontend usa *polling* (`VITE_ENABLE_SUBSCRIPTIONS=false`). Ver el anexo de [docs/DEPLOY.md](docs/DEPLOY.md).
+- **Vercel no mantiene conexiones WebSocket.** En producción sobre Vercel el frontend usa *polling* (`VITE_ENABLE_SUBSCRIPTIONS=false`) y el proyector corre con `waitUntil`. Las subscriptions en tiempo real funcionan con el servidor local (o desplegando el backend en un servicio con WebSocket, como Render; ver el anexo de la guía de Vercel).
 - **PubSub en memoria:** suficiente para una instancia. Con varias réplicas habría que usar Redis o PostgreSQL `LISTEN/NOTIFY`.
 - **Retardos artificiales** (`PROJECTION_DELAY_MS`, `AUTO_APPROVE_DELAY_MS`): existen para **hacer visible** la consistencia eventual en la demostración. En producción pueden ser `0`.
 - **Dataset:** se corrigieron tres erratas tipográficas del archivo original (MED-017 "Hdoclorotiazida", MED-034 "Aprazolam", MED-050 "Frsco"), documentadas en `database/seed/001_medications_dataset.sql`.
