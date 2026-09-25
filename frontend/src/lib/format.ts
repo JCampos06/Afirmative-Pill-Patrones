@@ -23,6 +23,11 @@ export function timeAgo(iso: string): string {
   return `hace ${Math.round(hours / 24)} d`;
 }
 
+/** Texto de un error de red o GraphQL: el detalle técnico solo se muestra en desarrollo. */
+export function errorText(error: { message: string }): string {
+  return import.meta.env.DEV ? error.message : 'Revisa tu conexión e inténtalo de nuevo en unos segundos.';
+}
+
 export function todayIso(): string {
   const now = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);

@@ -74,13 +74,15 @@ export function setSessionExpiredHandler(handler: () => void): void {
   onSessionExpired = handler;
 }
 
+// Los detalles de cada error solo se imprimen en desarrollo: en producción
+// la consola del navegador no expone operaciones ni mensajes del servidor.
 const errorLink = new ErrorLink(({ error, operation }) => {
   if (CombinedGraphQLErrors.is(error)) {
     for (const e of error.errors) {
       if (e.extensions?.code === 'UNAUTHENTICATED' && authTokenVar()) onSessionExpired?.();
-      console.warn(`[GraphQL] ${operation.operationName}: ${e.message}`);
+      if (import.meta.env.DEV) console.warn(`[GraphQL] ${operation.operationName}: ${e.message}`);
     }
-  } else {
+  } else if (import.meta.env.DEV) {
     console.error(`[Red] ${operation.operationName}:`, error);
   }
 });

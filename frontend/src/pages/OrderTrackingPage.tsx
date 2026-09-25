@@ -22,7 +22,7 @@ import { ArrowLeftIcon, ClockIcon, FileTextIcon, InboxIcon, MapPinIcon, PackageI
 import { OrderLines, OrderProgress, OrderTimeline, PrescriptionDetails, SyncIndicator } from '../components/order';
 import { Alert, CardHeader, EmptyState, IconCircle, PageLoader, Spinner } from '../components/ui';
 import { CancelOrderMutation, OrderQuery, OrderStatusChangedSubscription } from '../graphql/operations';
-import { formatCOP, formatDateTime } from '../lib/format';
+import { errorText, formatCOP, formatDateTime } from '../lib/format';
 
 export function OrderTrackingPage() {
   const { id = '' } = useParams();
@@ -73,22 +73,22 @@ export function OrderTrackingPage() {
               <InboxIcon className="h-7 w-7" />
             </span>
             <h1 className="text-xl font-bold text-slate-900">Pedido {receipt.code} recibido</h1>
-            <p className="text-slate-600">
-              El servidor confirmó el comando y reservó tu inventario por {formatCOP(receipt.total)}.
-            </p>
+            <p className="text-slate-600">Reservamos tus productos por un total de {formatCOP(receipt.total)}.</p>
             <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
               <Spinner className="h-4 w-4" /> Preparando el resumen de tu pedido…
             </div>
           </div>
-          <Alert tone="info" title="¿Por qué este paso intermedio?">
-            La orden ya existe en el modelo de escritura, pero la vista de seguimiento se alimenta de una proyección de
-            lectura que se construye de forma asíncrona (consistencia eventual). Aparecerá en unos instantes.
-          </Alert>
+          {import.meta.env.DEV && (
+            <Alert tone="info" title="¿Por qué este paso intermedio?">
+              La orden ya existe en el modelo de escritura, pero la vista de seguimiento se alimenta de una proyección
+              de lectura que se construye de forma asíncrona (consistencia eventual). Aparecerá en unos instantes.
+            </Alert>
+          )}
         </div>
       );
     }
     if (loading) return <PageLoader label="Cargando pedido…" />;
-    if (error) return <Alert tone="error" title="No se pudo cargar el pedido">{error.message}</Alert>;
+    if (error) return <Alert tone="error" title="No se pudo cargar el pedido">{errorText(error)}</Alert>;
     return (
       <EmptyState icon={<PackageIcon className="h-7 w-7" />} title="Pedido no encontrado">
         Si acabas de crearlo, espera unos segundos: la vista se actualizará sola.{' '}
@@ -125,7 +125,7 @@ export function OrderTrackingPage() {
         {syncing && (
           <Alert tone="info">
             <span className="inline-flex items-center gap-2">
-              <Spinner className="h-4 w-4" /> Cambio confirmado por el servidor. Sincronizando el historial del pedido…
+              <Spinner className="h-4 w-4" /> Cambio registrado. Actualizando el historial de tu pedido…
             </span>
           </Alert>
         )}
@@ -152,7 +152,7 @@ export function OrderTrackingPage() {
           </section>
 
           <section className="card p-5 sm:p-6">
-            <CardHeader icon={<ClockIcon className="h-5 w-5" />} tone="sky" title="Historial" subtitle="Eventos proyectados del pedido" />
+            <CardHeader icon={<ClockIcon className="h-5 w-5" />} tone="sky" title="Historial" subtitle="Cambios de estado de tu pedido" />
             <div className="mt-5 pl-2">
               <OrderTimeline history={order.statusHistory} />
             </div>

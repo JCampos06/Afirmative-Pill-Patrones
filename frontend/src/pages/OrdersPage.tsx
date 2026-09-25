@@ -53,7 +53,7 @@ export function OrdersPage() {
       </section>
 
       <section className="card p-5 sm:p-6">
-        <CardHeader icon={<PackageIcon className="h-5 w-5" />} title="Historial de pedidos" subtitle="Vista alimentada por la proyección de lectura" />
+        <CardHeader icon={<PackageIcon className="h-5 w-5" />} title="Historial de pedidos" subtitle="Toca un pedido para ver su seguimiento" />
 
         <ul className="mt-5 space-y-2">
           {stillPending.map((r) => (
@@ -67,7 +67,7 @@ export function OrdersPage() {
                 </IconCircle>
                 <div className="min-w-40 flex-1">
                   <p className="font-semibold text-slate-900">{r.code}</p>
-                  <p className="text-xs text-slate-500">Procesando… (comando aceptado, proyección en camino)</p>
+                  <p className="text-xs text-slate-500">Pedido recibido · procesando…</p>
                 </div>
                 <Column label="Total">
                   <span className="font-bold text-slate-900 tabular-nums">{formatCOP(r.total)}</span>

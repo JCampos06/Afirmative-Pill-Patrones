@@ -146,20 +146,23 @@ function Sidebar({ itemCount, onClose }: { itemCount: number; onClose: () => voi
         )}
       </div>
 
-      <div className="mt-auto pt-8">
-        <div className="rounded-2xl bg-white p-4 text-xs shadow-soft">
-          <p className="flex items-center gap-2 font-semibold text-slate-700">
-            <DatabaseIcon className="h-4 w-4 text-brand-600" /> Canal GraphQL único
-          </p>
-          <code className="mt-1.5 block truncate text-[11px] text-slate-500" title={GRAPHQL_HTTP_URL}>
-            {GRAPHQL_HTTP_URL}
-          </code>
-          <p className="mt-3 flex items-center gap-2 font-medium text-slate-600">
-            <span className={`h-2 w-2 rounded-full ${SUBSCRIPTIONS_ENABLED ? 'animate-pulse bg-emerald-500' : 'bg-sky-500'}`} />
-            {SUBSCRIPTIONS_ENABLED ? 'Tiempo real · Subscriptions' : 'Tiempo real · Polling'}
-          </p>
+      {/* Información técnica del canal: solo en desarrollo (no llega al build de producción). */}
+      {import.meta.env.DEV && (
+        <div className="mt-auto pt-8">
+          <div className="rounded-2xl bg-white p-4 text-xs shadow-soft">
+            <p className="flex items-center gap-2 font-semibold text-slate-700">
+              <DatabaseIcon className="h-4 w-4 text-brand-600" /> Canal GraphQL único
+            </p>
+            <code className="mt-1.5 block truncate text-[11px] text-slate-500" title={GRAPHQL_HTTP_URL}>
+              {GRAPHQL_HTTP_URL}
+            </code>
+            <p className="mt-3 flex items-center gap-2 font-medium text-slate-600">
+              <span className={`h-2 w-2 rounded-full ${SUBSCRIPTIONS_ENABLED ? 'animate-pulse bg-emerald-500' : 'bg-sky-500'}`} />
+              {SUBSCRIPTIONS_ENABLED ? 'Tiempo real · Subscriptions' : 'Tiempo real · Polling'}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

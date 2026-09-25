@@ -7,7 +7,7 @@ import { CartIcon, ChevronRightIcon, MinusIcon, PillIcon, PlusIcon } from '../co
 import { Alert, EmptyState, PageLoader, QueryInspector } from '../components/ui';
 import { MedicationDetailQuery } from '../graphql/operations';
 import { useCartActions } from '../hooks/useCartActions';
-import { formatCOP, timeAgo } from '../lib/format';
+import { errorText, formatCOP, timeAgo } from '../lib/format';
 
 const MAX_UNITS = 10;
 
@@ -19,7 +19,7 @@ export function MedicationDetailPage() {
   const [result, setResult] = useState<DomainErrorLike | 'ok' | null>(null);
 
   if (loading && !data) return <PageLoader label="Cargando ficha técnica…" />;
-  if (error && !data) return <Alert tone="error" title="No se pudo cargar la ficha">{error.message}</Alert>;
+  if (error && !data) return <Alert tone="error" title="No se pudo cargar la ficha">{errorText(error)}</Alert>;
 
   const m = data?.medication;
   if (!m) {
@@ -115,7 +115,7 @@ export function MedicationDetailPage() {
           <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm">
             <p className="font-semibold text-slate-700">{m.availability.unitsAvailable} unidades disponibles</p>
             <p className="mt-0.5 text-xs text-slate-400">
-              Inventario sincronizado {timeAgo(m.availability.syncedAt)} · se confirma al pagar
+              Disponibilidad actualizada {timeAgo(m.availability.syncedAt)} · se confirma al pagar
             </p>
           </div>
 
@@ -169,7 +169,7 @@ export function MedicationDetailPage() {
         </aside>
       </div>
 
-      <QueryInspector document={MedicationDetailQuery} title="Operación de la ficha detallada" />
+      {import.meta.env.DEV && <QueryInspector document={MedicationDetailQuery} title="Operación de la ficha detallada" />}
     </div>
   );
 }

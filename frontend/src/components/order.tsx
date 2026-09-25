@@ -131,21 +131,26 @@ export function PrescriptionDetails({ prescription }: { prescription: NonNullabl
   );
 }
 
-/** Indica cómo llegan las actualizaciones y la frescura de la proyección. */
+/**
+ * Indica que el seguimiento se actualiza solo. El mecanismo (subscription o
+ * polling) y la versión de la proyección solo se muestran en desarrollo.
+ */
 export function SyncIndicator({ order }: { order: Pick<OrderSummaryFieldsFragment, 'projectionVersion' | 'syncedAt'> }) {
   return (
     <p className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
       {SUBSCRIPTIONS_ENABLED ? (
         <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-700">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> En vivo (subscription)
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> En vivo
+          {import.meta.env.DEV && ' (subscription)'}
         </span>
       ) : (
         <span className="inline-flex items-center gap-1.5 font-semibold text-sky-700">
-          <RefreshIcon className="h-3.5 w-3.5" /> Actualización periódica (polling)
+          <RefreshIcon className="h-3.5 w-3.5" /> Actualización automática
+          {import.meta.env.DEV && ' (polling)'}
         </span>
       )}
       <span>
-        · Proyección v{order.projectionVersion} sincronizada {timeAgo(order.syncedAt)}
+        · {import.meta.env.DEV ? `Proyección v${order.projectionVersion} sincronizada` : 'Actualizado'} {timeAgo(order.syncedAt)}
       </span>
     </p>
   );

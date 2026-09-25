@@ -93,11 +93,11 @@ export function PharmacyPage() {
           <span className="badge bg-white px-3 py-1.5 text-slate-600 shadow-soft">
             {SUBSCRIPTIONS_ENABLED ? (
               <>
-                <ZapIcon className="h-3.5 w-3.5 text-emerald-600" /> Feed en vivo (orderFeed)
+                <ZapIcon className="h-3.5 w-3.5 text-emerald-600" /> En vivo{import.meta.env.DEV && ' (orderFeed)'}
               </>
             ) : (
               <>
-                <RefreshIcon className="h-3.5 w-3.5 text-sky-600" /> Actualización cada 5 s
+                <RefreshIcon className="h-3.5 w-3.5 text-sky-600" /> Actualización automática
               </>
             )}
           </span>

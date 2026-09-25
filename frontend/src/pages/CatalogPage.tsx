@@ -8,6 +8,7 @@ import { MedicationCard } from '../components/MedicationCard';
 import { Alert, Banner, CardHeader, EmptyState, PageLoader, QueryInspector, Spinner, StatCard } from '../components/ui';
 import type { MedicationFilter, MedicationSort } from '../gql/graphql';
 import { CatalogQuery, CategoriesQuery, MyCartQuery } from '../graphql/operations';
+import { errorText } from '../lib/format';
 
 const PAGE_SIZE = 12;
 
@@ -94,7 +95,7 @@ export function CatalogPage() {
           <StatCard label="Unidades en tu carrito" value={cartData?.myCart?.itemCount ?? 0} icon={<CartIcon className="h-4 w-4" />} tone="amber" />
         ) : (
           <StatCard
-            label="Cargados en pantalla"
+            label="Mostrando ahora"
             value={connection ? `${connection.edges.length}` : '—'}
             icon={<GridIcon className="h-4 w-4" />}
             tone="amber"
@@ -112,9 +113,9 @@ export function CatalogPage() {
                 <Spinner className="h-3 w-3" /> Buscando…
               </span>
             ) : connection ? (
-              `${connection.totalCount} medicamentos · vista condensada del read model`
+              `${connection.totalCount} medicamentos disponibles para ti`
             ) : (
-              'Vista condensada del read model'
+              'Explora nuestro catálogo'
             )
           }
           actions={
@@ -144,7 +145,7 @@ export function CatalogPage() {
           ))}
         </div>
 
-        {error && !data && <Alert tone="error" title="No se pudo cargar el catálogo">{error.message}</Alert>}
+        {error && !data && <Alert tone="error" title="No se pudo cargar el catálogo">{errorText(error)}</Alert>}
 
         {!connection && loading ? (
           <PageLoader label="Cargando catálogo…" />
@@ -168,7 +169,9 @@ export function CatalogPage() {
         )}
       </section>
 
-      <QueryInspector document={CatalogQuery} title="Operación de la vista condensada (sin over-fetching)" />
+      {import.meta.env.DEV && (
+        <QueryInspector document={CatalogQuery} title="Operación de la vista condensada (sin over-fetching)" />
+      )}
     </div>
   );
 }

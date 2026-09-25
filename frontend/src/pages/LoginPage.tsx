@@ -54,7 +54,11 @@ export function LoginPage() {
         <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">
           {mode === 'login' ? 'Ingresa a tu cuenta' : 'Crea tu cuenta'}
         </h1>
-        <p className="mt-1 text-sm text-slate-500">La autenticación también viaja por GraphQL (mutation {mode}).</p>
+        <p className="mt-1 text-sm text-slate-500">
+          {mode === 'login'
+            ? 'Compra tus medicamentos y sigue tus pedidos en tiempo real.'
+            : 'Regístrate para comprar en línea y recibir en casa.'}
+        </p>
       </div>
 
       <div className="card p-6 sm:p-7">
@@ -130,7 +134,8 @@ export function LoginPage() {
         </form>
       </div>
 
-      {mode === 'login' && (
+      {/* Accesos rápidos para probar en local; no se incluyen en el build de producción. */}
+      {import.meta.env.DEV && mode === 'login' && (
         <div className="card p-5">
           <p className="mb-3 text-xs font-medium text-slate-400">Cuentas de demostración</p>
           <div className="grid gap-2 sm:grid-cols-2">

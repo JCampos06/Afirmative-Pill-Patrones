@@ -258,7 +258,7 @@ function CartWithCheckout({ cart }: { cart: CartFieldsFragment }) {
           </button>
 
           <Alert tone="info">
-            Al confirmar, el inventario se reserva de forma atómica. El seguimiento del pedido se actualiza en tiempo real.
+            Al confirmar, reservamos tus productos de inmediato. Podrás seguir tu pedido en tiempo real.
           </Alert>
         </form>
       </div>
