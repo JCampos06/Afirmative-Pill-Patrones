@@ -7,6 +7,30 @@ Plataforma de venta de medicamentos en línea construida sobre dos pilares arqui
 
 > Taller práctico · Ingeniería de Software Avanzada / Patrones Arquitectónicos · Caso de estudio "Afirmative Pill".
 
+> 📚 **Documentación para la evaluación:** la carpeta [`docs/`](docs/README.md) reúne la justificación de diseño y la evidencia de cada criterio de la rúbrica (logs reales del N+1, invariantes, consistencia eventual, caché de Apollo e índices), con enlaces al código exacto.
+
+---
+
+## 🚀 Aplicación desplegada
+
+| | Enlace | Qué es |
+|---|---|---|
+| **Aplicación web** | [afirmative-pill-patrones.vercel.app](https://afirmative-pill-patrones.vercel.app) | Frontend React (Vercel). Catálogo, carrito, seguimiento de pedidos y bandeja del farmacéutico. |
+| **API GraphQL** | [afirmative-pill-api.onrender.com/graphql](https://afirmative-pill-api.onrender.com/graphql) | Único endpoint del backend (Render). Al abrirlo en el navegador carga **Apollo Sandbox** para explorar el schema y ejecutar operaciones. |
+
+**Cuentas de demostración**
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Paciente | `paciente@afirmativepill.co` | `Paciente123*` |
+| Químico farmacéutico | `farmacia@afirmativepill.co` | `Farmacia123*` |
+
+Para probar un pedido con fórmula médica, el documento del paciente es `1000000001`.
+
+> ⏳ **Primera carga:** el backend está en el plan gratuito de Render, que suspende el servicio tras 15 minutos sin uso. Si el catálogo tarda en aparecer, espera hasta un minuto mientras se reactiva; después responde con normalidad.
+>
+> 💡 **Tiempo real:** para ver las *subscriptions*, abre la aplicación en dos ventanas (una como paciente y otra, en incógnito, como farmacéutico). Al aprobar o despachar un pedido, la ventana del paciente se actualiza sola.
+
 ---
 
 ## Tabla de contenido
@@ -21,7 +45,7 @@ Plataforma de venta de medicamentos en línea construida sobre dos pilares arqui
 8. [Frontend: Apollo Client y caché](#8-frontend-apollo-client-y-caché)
 9. [Zero-REST: cómo se garantiza](#9-zero-rest-cómo-se-garantiza)
 10. [Pruebas](#10-pruebas)
-11. [Despliegue (Supabase + Vercel)](#11-despliegue)
+11. [Despliegue (Supabase + Render + Vercel)](#11-despliegue)
 12. [Decisiones y limitaciones conocidas](#12-decisiones-y-limitaciones-conocidas)
 13. [Schema SDL completo](#13-schema-sdl-completo)
 
@@ -43,7 +67,7 @@ Plataforma de venta de medicamentos en línea construida sobre dos pilares arqui
 | Estilos | Tailwind CSS 4 |
 | Tipado de operaciones | GraphQL Code Generator (`client-preset`) |
 | Pruebas | Vitest (dominio) + prueba de humo end-to-end (`npm run smoke`) |
-| Despliegue | Supabase (BD) + Vercel (frontend y backend) |
+| Despliegue | Supabase (BD) + Render (backend) + Vercel (frontend) |
 
 ---
 
@@ -171,10 +195,14 @@ TALLER3C2/
 │       ├── components/            # UI, badges, layout, componentes de orden
 │       └── pages/                 # Catálogo, Ficha, Carrito, Pedidos, Seguimiento, Farmacia, Login
 │
-└── docs/
-    ├── DEPLOY_SUPABASE.md         # paso a paso de la base de datos
-    ├── DEPLOY_VERCEL.md           # paso a paso del despliegue
-    └── GUION_VIDEO.md             # guion sugerido para la sustentación
+└── docs/                          # documentación técnica para la evaluación
+    ├── README.md                  # índice y mapa de la rúbrica
+    ├── 01_ARQUITECTURA.md         # diagramas de componentes, despliegue y flujo
+    ├── 02_GRAPHQL.md              # diseño del schema, over-fetching, Zero-REST
+    ├── 03_N1_DATALOADER.md        # problema N+1 y logs reales de DataLoader
+    ├── 04_CQRS.md                 # segregación, invariantes, consistencia eventual
+    ├── 05_FRONTEND_APOLLO.md      # ApolloProvider, caché, hooks, subscriptions
+    └── 06_SUPABASE.md             # dataset, modelo de datos, índices, RLS
 ```
 
 ---
@@ -184,7 +212,7 @@ TALLER3C2/
 ### Requisitos
 
 - Node.js **20 o superior** (probado con Node 24).
-- Un proyecto de **Supabase** (ver [docs/DEPLOY_SUPABASE.md](docs/DEPLOY_SUPABASE.md)).
+- Un proyecto de **Supabase** con el script [`database/supabase_setup.sql`](database/supabase_setup.sql) ejecutado en el SQL Editor. `DATABASE_URL` debe ser la URI del **Session pooler** (puerto 5432).
   - Alternativa sin internet: un PostgreSQL local, por ejemplo `docker run -d --name afirmative-pg -e POSTGRES_PASSWORD=postgres -p 54329:5432 postgres:17-alpine`.
 
 ### Pasos
@@ -298,24 +326,26 @@ Las mutations nunca devuelven la proyección. Devuelven un **acuse** (`OrderRece
 - Todas las relaciones anidadas pasan por ellos: `Medication.category`, `Medication.laboratory`, `CartItem.medication`, `OrderLine.medication`, `StockShortage.medication`, `PrescriptionRequiredError.medications`, `Category.medications`, `Category.medicationCount`.
 - Cada lote se resuelve con **una** consulta `WHERE id = ANY($1)`. Además, `Query.medications` pre-carga (`prime`) el loader con las filas ya leídas.
 
-**Evidencia medida** con la consulta `medications(first: 12) { name category { name } laboratory { name } }`:
+**Evidencia medida contra Supabase** con la consulta `medications(first: 12) { name category { name } laboratory { name } }`:
 
 | Modo | Consultas SQL |
 |---|---|
 | `DISABLE_DATALOADER=true` (N+1) | **25** (1 + 12 categorías + 12 laboratorios) |
 | DataLoader activo | **3** (1 + 1 lote de categorías + 1 lote de laboratorios) |
 
-Así se ve en los logs reales del servidor. Los 12 medicamentos comparten categorías y laboratorios, así que DataLoader además **deduplica**: pide 9 categorías y 8 laboratorios distintos.
+Así se ve en los logs reales del servidor. Los 12 medicamentos comparten categorías y laboratorios, así que DataLoader además **deduplica**: pide 8 categorías y 8 laboratorios distintos.
 
 ```
-GRAPHQL     ▶ query Demo
-SQL         select medication_id, sku, name, … from medication_catalog … [12,0] → 12 filas · 1.4ms
-DATALOADER  categoryById · lote de 9 claves [14, 3, 4, 11, 5, 10, 6, 1, 8] → 1 consulta SQL
-DATALOADER  laboratoryById · lote de 8 claves [2, 12, 1, 7, 14, 15, 10, 9] → 1 consulta SQL
-SQL         select id, name, slug from categories where id = any($1::int[]) → 9 filas · 1.7ms
-SQL         select id, name from laboratories where id = any($1::int[]) → 8 filas · 13.3ms
-GRAPHQL     ◀ query Demo · 3 consultas SQL · 2 lotes DataLoader · 16ms
+GRAPHQL     ▶ query DemoN1
+SQL         select medication_id, sku, name, … from medication_catalog … [12,0] → 12 filas · 115.9ms
+DATALOADER  categoryById · lote de 8 claves [14, 3, 5, 4, 11, 10, 6, 1] → 1 consulta SQL
+DATALOADER  laboratoryById · lote de 8 claves [2, 12, 9, 1, 7, 14, 15, 10] → 1 consulta SQL
+SQL         select id, name, slug from categories where id = any($1::int[]) → 8 filas · 115.7ms
+SQL         select id, name from laboratories where id = any($1::int[]) → 8 filas · 788.4ms
+GRAPHQL     ◀ query DemoN1 · 3 consultas SQL · 2 lotes DataLoader · 924ms
 ```
+
+Los logs completos de ambos modos, otra consulta de ejemplo (15 → 2 consultas) y cómo reproducirlo están en [docs/03_N1_DATALOADER.md](docs/03_N1_DATALOADER.md).
 
 La vista condensada del catálogo (`query Catalog`) ni siquiera pide `category` ni `laboratory`, así que se resuelve con **1 sola consulta SQL**. Es la ventaja de la selección selectiva de campos.
 
@@ -346,7 +376,7 @@ La vista condensada del catálogo (`query Catalog`) ni siquiera pide `category` 
 
 ## 9. Zero-REST: cómo se garantiza
 
-- El backend monta **una sola ruta**: `/graphql` (HTTP para queries/mutations y WebSocket para subscriptions). En Vercel, `/graphql` se reescribe a la función `/api/graphql`, que es el mismo servidor GraphQL. No hay ninguna otra ruta de datos.
+- El backend monta **una sola ruta**: `/graphql` (HTTP para queries/mutations y WebSocket para subscriptions). No hay ninguna otra ruta de datos. (En el adaptador serverless alternativo para Vercel, `/graphql` se reescribe a la función `/api/graphql`, que es el mismo servidor GraphQL.)
 - El login y el registro también son mutations (`login`, `register`).
 - El frontend no usa `fetch` directo: todo pasa por Apollo Client. La prueba en navegador (Edge + Playwright) confirmó que **no hubo ninguna petición fetch/XHR/WS fuera de `/graphql`**.
 - Supabase genera automáticamente una API REST (PostgREST). La migración `004_security.sql` activa **Row Level Security sin políticas** en todas las tablas, así que esa API queda inutilizable para los roles públicos y el único camino a los datos es el backend GraphQL.
@@ -369,15 +399,20 @@ npm run smoke     # E2E contra el backend en ejecución (26 verificaciones):
 
 ## 11. Despliegue
 
-- **Base de datos:** [docs/DEPLOY_SUPABASE.md](docs/DEPLOY_SUPABASE.md)
-- **Frontend y backend en Vercel:** [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)
-- **Guion del video de sustentación:** [docs/GUION_VIDEO.md](docs/GUION_VIDEO.md)
+| Pieza | Plataforma | Notas |
+|---|---|---|
+| Base de datos | **Supabase** (PostgreSQL) | Se crea ejecutando [`database/supabase_setup.sql`](database/supabase_setup.sql) en el SQL Editor. El backend se conecta por el *Session pooler* (puerto 5432). |
+| Backend | **Render** (Web Service, Root Directory `backend`) | Build: `npm install --include=dev && npm run build` · Start: `npm start`. Servidor persistente con HTTP + WebSocket en `/graphql`. |
+| Frontend | **Vercel** (Root Directory `frontend`) | Variables: `VITE_GRAPHQL_HTTP_URL`, `VITE_GRAPHQL_WS_URL` y `VITE_ENABLE_SUBSCRIPTIONS=true`. |
+
+El diagrama de despliegue está en [docs/01_ARQUITECTURA.md](docs/01_ARQUITECTURA.md#3-despliegue).
 
 ---
 
 ## 12. Decisiones y limitaciones conocidas
 
-- **Vercel no mantiene conexiones WebSocket.** En producción sobre Vercel el frontend usa *polling* (`VITE_ENABLE_SUBSCRIPTIONS=false`) y el proyector corre con `waitUntil`. Las subscriptions en tiempo real funcionan con el servidor local (o desplegando el backend en un servicio con WebSocket, como Render; ver el anexo de la guía de Vercel).
+- **Backend en Render (servidor persistente).** Se eligió Render porque mantiene conexiones WebSocket, así que las subscriptions funcionan en producción. En el plan gratuito el servicio se suspende tras 15 minutos sin tráfico y la primera petición tarda unos 50 segundos.
+- **Alternativa serverless:** el backend también puede correr en Vercel (`vercel-handler.ts`, con el proyector en `waitUntil`), pero Vercel no mantiene WebSocket y el frontend usa *polling* (`VITE_ENABLE_SUBSCRIPTIONS=false`).
 - **PubSub en memoria:** suficiente para una instancia. Con varias réplicas habría que usar Redis o PostgreSQL `LISTEN/NOTIFY`.
 - **Retardos artificiales** (`PROJECTION_DELAY_MS`, `AUTO_APPROVE_DELAY_MS`): existen para **hacer visible** la consistencia eventual en la demostración. En producción pueden ser `0`.
 - **Dataset:** se corrigieron tres erratas tipográficas del archivo original (MED-017 "Hdoclorotiazida", MED-034 "Aprazolam", MED-050 "Frsco"), documentadas en `database/seed/001_medications_dataset.sql`.

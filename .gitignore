@@ -33,6 +33,12 @@ coverage/
 # ─── Notas personales del proceso ───────────────────────────────
 NOTAS_PROCESO.md
 
+# ─── Guías personales (despliegue y guion del video) ────────────
+docs/DEPLOY.md
+docs/DEPLOY_SUPABASE.md
+docs/DEPLOY_VERCEL.md
+docs/GUION_VIDEO.md
+
 # ─── Editores y sistema operativo ───────────────────────────────
 .vscode/*
 !.vscode/extensions.json
